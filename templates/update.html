@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <style>
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .container {
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+        .navbar-brand {
+          font-size: 1.1rem;
+        }
+        .card {
+          margin-top: 1rem;
+        }
+        .btn {
+          padding: 0.375rem 0.5rem;
+        }
+        .d-flex {
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+      }
+      
+      /* For very small screens */
+      @media (max-width: 576px) {
+        h3 {
+          font-size: 1.5rem;
+        }
+        .btn {
+          width: 100%;
+          margin-right: 0 !important;
+          margin-bottom: 0.5rem;
+        }
+        .form-label {
+          font-size: 0.9rem;
+        }
+        .navbar-brand {
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/"><i class="bi bi-calendar-check me-2"></i>Attendance System</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="/"><i class="bi bi-house-door me-1"></i>Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/attendance"><i class="bi bi-calendar-date me-1"></i>Daily Attendance</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-file-bar-graph me-1"></i>Reports
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/attendance-report"><i class="bi bi-calendar-month me-1"></i>Monthly Report</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/download-attendance-report"><i class="bi bi-file-earmark-excel me-1"></i>Download Report</a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-gear me-1"></i>Settings
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#passwordModal"><i class="bi bi-key me-1"></i>Change Password</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutModal"><i class="bi bi-info-circle me-1"></i>About System</a></li>
+              </ul>
+            </li>
+          </ul>
+          <form class="d-flex" role="search" action="/search" method="GET">
+            <input class="form-control me-2" type="search" placeholder="Search student" name="query" aria-label="Search">
+            <button class="btn btn-light" type="submit"><i class="bi bi-search"></i></button>
+          </form>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="container mt-3">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              <i class="bi bi-info-circle me-2"></i>{{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+    
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-header bg-warning text-dark">
+          <h3 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Update Student Information</h3>
+        </div>
+        <div class="card-body">
+          <form action="/update/{{todo.id}}" method="POST">
+            <div class="mb-3">
+              <label for="title" class="form-label">Student Name</label>
+              <input type="text" class="form-control" id="title" name="title" value="{{todo.name}}">
+            </div>
+            <div class="mb-3">
+              <label for="desc" class="form-label">Roll Number</label>
+              <input type="text" class="form-control" name="desc" id="desc" value="{{todo.roll_number}}">
+            </div>
+            <div class="d-flex">
+              <button type="submit" class="btn btn-warning me-2"><i class="bi bi-save me-1"></i>Update Student</button>
+              <a href="/" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Change Modal -->
+    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="passwordModalLabel"><i class="bi bi-key me-1"></i>Change Password</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form action="/change-password" method="POST">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="currentPassword" class="form-label">Current Password</label>
+                <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+              </div>
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+              </div>
+              <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- About System Modal -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="aboutModalLabel"><i class="bi bi-info-circle me-1"></i>About System</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="text-center mb-3">
+              <i class="bi bi-calendar-check" style="font-size: 3rem; color: var(--bs-primary);"></i>
+              <h4 class="mt-2">Student Attendance System</h4>
+              <p class="text-muted">Version 1.0.0</p>
+            </div>
+            <p>A comprehensive system designed to manage student records and track attendance efficiently.</p>
+            <hr>
+            <h6>Features:</h6>
+            <ul>
+              <li>Student Management</li>
+              <li>Daily Attendance Tracking</li>
+              <li>Monthly Attendance Reports</li>
+              <li>Export Data to Excel</li>
+            </ul>
+            <hr>
+            <p class="mb-0 text-muted text-center">© 2023 Student Attendance System. All rights reserved.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+  </body>
+</html>

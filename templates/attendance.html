@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Daily Attendance - Student Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <style>
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .table-responsive {
+          font-size: 0.85rem;
+        }
+        .btn-sm {
+          padding: 0.2rem 0.4rem;
+          font-size: 0.75rem;
+        }
+        .container {
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+        .navbar-brand {
+          font-size: 1.1rem;
+        }
+        .date-selector {
+          flex-direction: column;
+          align-items: stretch !important;
+          gap: 0.5rem;
+        }
+        .date-selector label {
+          margin-bottom: 0.25rem;
+        }
+        .date-selector button {
+          width: 100%;
+        }
+      }
+      
+      /* For very small screens */
+      @media (max-width: 576px) {
+        .table-responsive th, .table-responsive td {
+          padding: 0.5rem 0.3rem;
+        }
+        .btn-group-sm > .btn, .btn-sm {
+          padding: 0.15rem 0.3rem;
+          font-size: 0.7rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/"><i class="bi bi-calendar-check me-2"></i>Attendance System</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="/"><i class="bi bi-house-door me-1"></i>Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="/attendance"><i class="bi bi-calendar-date me-1"></i>Daily Attendance</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-file-bar-graph me-1"></i>Reports
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/attendance-report"><i class="bi bi-calendar-month me-1"></i>Monthly Report</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/download-attendance-report"><i class="bi bi-file-earmark-excel me-1"></i>Download Report</a></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-gear me-1"></i>Settings
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#passwordModal"><i class="bi bi-key me-1"></i>Change Password</a></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#themeModal"><i class="bi bi-palette me-1"></i>Theme Settings</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutModal"><i class="bi bi-info-circle me-1"></i>About System</a></li>
+              </ul>
+            </li>
+          </ul>
+          <form class="d-flex" role="search" action="/search" method="GET">
+            <input class="form-control me-2" type="search" placeholder="Search student" name="query" aria-label="Search">
+            <button class="btn btn-light" type="submit"><i class="bi bi-search"></i></button>
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container my-4">
+      <div class="row mb-4">
+        <div class="col-md-8">
+          <h2><i class="bi bi-calendar-check me-2"></i>Daily Attendance</h2>
+          <p class="text-muted">Manage daily attendance for all students</p>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex justify-content-end">
+            <form action="/attendance" method="GET" class="d-flex align-items-center date-selector">
+              <label for="date" class="form-label me-2 mb-0">Date:</label>
+              <input type="date" class="form-control me-2" id="date" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>View</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {% if attendance_data %}
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Attendance for {{ selected_date.strftime('%d %B, %Y') }}</h3>
+            <div>
+              <a href="/download-attendance-report?month={{ selected_date.month }}&year={{ selected_date.year }}" class="btn btn-light">
+                <i class="bi bi-download me-1"></i> Download Report
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Student Name</th>
+                  <th>Roll Number</th>
+                  <th>Status</th>
+                  <th>Remarks</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for student_id, data in attendance_data.items() %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ data.student.name }}</td>
+                  <td>{{ data.student.roll_number }}</td>
+                  <td>
+                    {% if data.attendance %}
+                      {% if data.attendance.status == 'present' %}
+                        <span class="badge bg-success">Present</span>
+                      {% elif data.attendance.status == 'absent' %}
+                        <span class="badge bg-danger">Absent</span>
+                      {% elif data.attendance.status == 'late' %}
+                        <span class="badge bg-warning text-dark">Late</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="badge bg-secondary">Not Marked</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if data.attendance %}
+                      {{ data.attendance.remarks or '-' }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#attendanceModal{{ data.student.id }}">
+                      <i class="bi bi-pencil-square me-1"></i>Mark Attendance
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Mark Attendance Modal -->
+                <div class="modal fade" id="attendanceModal{{ data.student.id }}" tabindex="-1" aria-labelledby="attendanceModalLabel{{ data.student.id }}" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="attendanceModalLabel{{ data.student.id }}">Mark Attendance for {{ data.student.name }}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <form action="/mark-attendance/{{ data.student.id }}" method="POST">
+                        <div class="modal-body">
+                          <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <div class="d-flex">
+                              <div class="form-check me-3">
+                                <input class="form-check-input" type="radio" name="status" id="present{{ data.student.id }}" value="present" {% if not data.attendance or data.attendance.status == 'present' %}checked{% endif %}>
+                                <label class="form-check-label" for="present{{ data.student.id }}">
+                                  Present
+                                </label>
+                              </div>
+                              <div class="form-check me-3">
+                                <input class="form-check-input" type="radio" name="status" id="absent{{ data.student.id }}" value="absent" {% if data.attendance and data.attendance.status == 'absent' %}checked{% endif %}>
+                                <label class="form-check-label" for="absent{{ data.student.id }}">
+                                  Absent
+                                </label>
+                              </div>
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="status" id="late{{ data.student.id }}" value="late" {% if data.attendance and data.attendance.status == 'late' %}checked{% endif %}>
+                                <label class="form-check-label" for="late{{ data.student.id }}">
+                                  Late
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="mb-3">
+                            <label for="remarks{{ data.student.id }}" class="form-label">Remarks</label>
+                            <textarea class="form-control" id="remarks{{ data.student.id }}" name="remarks" rows="2">{{ data.attendance.remarks if data.attendance else '' }}</textarea>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                          <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Save</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle me-2"></i>No students found in the system. Please add students first.
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Password Change Modal -->
+    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="passwordModalLabel"><i class="bi bi-key me-1"></i>Change Password</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form action="/change-password" method="POST">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="currentPassword" class="form-label">Current Password</label>
+                <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+              </div>
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+              </div>
+              <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme Settings Modal -->
+    <div class="modal fade" id="themeModal" tabindex="-1" aria-labelledby="themeModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="themeModalLabel"><i class="bi bi-palette me-1"></i>Theme Settings</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Color Theme</label>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary d-flex align-items-center justify-content-center theme-btn" data-theme="primary" style="width: 40px; height: 40px; border-radius: 50%;">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+                <button class="btn btn-success d-flex align-items-center justify-content-center theme-btn" data-theme="success" style="width: 40px; height: 40px; border-radius: 50%;">
+                </button>
+                <button class="btn btn-danger d-flex align-items-center justify-content-center theme-btn" data-theme="danger" style="width: 40px; height: 40px; border-radius: 50%;">
+                </button>
+                <button class="btn btn-warning d-flex align-items-center justify-content-center theme-btn" data-theme="warning" style="width: 40px; height: 40px; border-radius: 50%;">
+                </button>
+                <button class="btn btn-info d-flex align-items-center justify-content-center theme-btn" data-theme="info" style="width: 40px; height: 40px; border-radius: 50%;">
+                </button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Display Mode</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="darkModeSwitch">
+                <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="fontSizeRange" class="form-label">Font Size: <span id="fontSizeValue">Default</span></label>
+              <input type="range" class="form-range" min="0" max="2" step="1" id="fontSizeRange" value="1">
+              <div class="d-flex justify-content-between">
+                <small>Small</small>
+                <small>Medium</small>
+                <small>Large</small>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="saveThemeSettings"><i class="bi bi-save me-1"></i>Apply Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About System Modal -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="aboutModalLabel"><i class="bi bi-info-circle me-1"></i>About System</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="text-center mb-3">
+              <i class="bi bi-calendar-check" style="font-size: 3rem; color: var(--bs-primary);"></i>
+              <h4 class="mt-2">Student Attendance System</h4>
+              <p class="text-muted">Version 1.0.0</p>
+            </div>
+            <p>A comprehensive system designed to manage student records and track attendance efficiently.</p>
+            <hr>
+            <h6>Features:</h6>
+            <ul>
+              <li>Student Management</li>
+              <li>Daily Attendance Tracking</li>
+              <li>Monthly Attendance Reports</li>
+              <li>Export Data to Excel</li>
+            </ul>
+            <hr>
+            <p class="mb-0 text-muted text-center">© 2023 Student Attendance System. All rights reserved.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+    
+    <!-- Theme Settings Script -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Get theme setting elements
+        const darkModeSwitch = document.getElementById('darkModeSwitch');
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        const fontSizeRange = document.getElementById('fontSizeRange');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        const saveButton = document.getElementById('saveThemeSettings');
+        
+        // Font size labels
+        const fontSizeLabels = ['Small', 'Medium', 'Large'];
+        
+        // Initialize settings from localStorage
+        function loadSettings() {
+          // Dark mode
+          const darkMode = localStorage.getItem('darkMode') === 'true';
+          darkModeSwitch.checked = darkMode;
+          if (darkMode) {
+            document.body.classList.add('dark-mode');
+          }
+          
+          // Color theme
+          const colorTheme = localStorage.getItem('colorTheme') || 'primary';
+          document.body.className = document.body.className
+            .split(' ')
+            .filter(cls => !cls.startsWith('theme-'))
+            .join(' ');
+          
+          if (colorTheme !== 'primary') {
+            document.body.classList.add('theme-' + colorTheme);
+          }
+          
+          // Update theme button indicators
+          themeButtons.forEach(btn => {
+            btn.innerHTML = btn.dataset.theme === colorTheme ? '<i class="bi bi-check-lg"></i>' : '';
+          });
+          
+          // Font size
+          const fontSize = parseInt(localStorage.getItem('fontSize') || '1');
+          fontSizeRange.value = fontSize;
+          fontSizeValue.textContent = fontSizeLabels[fontSize];
+          
+          document.body.classList.remove('font-small', 'font-medium', 'font-large');
+          if (fontSize === 0) document.body.classList.add('font-small');
+          if (fontSize === 1) document.body.classList.add('font-medium');
+          if (fontSize === 2) document.body.classList.add('font-large');
+        }
+        
+        // Load settings on page load
+        loadSettings();
+        
+        // Theme button click handler
+        themeButtons.forEach(btn => {
+          btn.addEventListener('click', function() {
+            const theme = this.dataset.theme;
+            
+            // Update indicators
+            themeButtons.forEach(b => b.innerHTML = '');
+            this.innerHTML = '<i class="bi bi-check-lg"></i>';
+            
+            // Store selection (will be applied on save)
+            localStorage.setItem('colorTheme', theme);
+          });
+        });
+        
+        // Font size change handler
+        fontSizeRange.addEventListener('input', function() {
+          const sizeIndex = parseInt(this.value);
+          fontSizeValue.textContent = fontSizeLabels[sizeIndex];
+          
+          // Store selection (will be applied on save)
+          localStorage.setItem('fontSize', sizeIndex);
+        });
+        
+        // Dark mode toggle handler
+        darkModeSwitch.addEventListener('change', function() {
+          localStorage.setItem('darkMode', this.checked);
+        });
+        
+        // Save settings
+        saveButton.addEventListener('click', function() {
+          loadSettings(); // Apply the stored settings
+          
+          // Close the modal
+          const themeModal = bootstrap.Modal.getInstance(document.getElementById('themeModal'));
+          themeModal.hide();
+          
+          // Show confirmation alert
+          const alertHtml = `
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <i class="bi bi-check-circle me-2"></i>Theme settings applied successfully!
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          `;
+          document.querySelector('.container.mt-3').insertAdjacentHTML('beforeend', alertHtml);
+        });
+      });
+    </script>
+  </body>
+</html> 
