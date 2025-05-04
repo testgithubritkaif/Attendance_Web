@@ -21,7 +21,7 @@ class Student(db.Model):
     name = db.Column(db.String(200), nullable=False)
     roll_number = db.Column(db.String(50), nullable=False, unique=True)
     registration_date = db.Column(db.DateTime, default=datetime.utcnow)
-    attendances = db.relationship('Attendance', backref='student', lazy=True)
+    attendances = db.relationship('Attendance', backref='student', lazy=True, cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"{self.id} - {self.name} ({self.roll_number})"
@@ -43,6 +43,18 @@ def home():
     if request.method == "POST":
         name = request.form["title"]  # Keep field names for backward compatibility
         roll_number = request.form["desc"]
+        
+        # Validate input
+        if not roll_number:
+            flash("Roll number cannot be empty!", "danger")
+            return redirect("/")
+            
+        # Check if roll number already exists
+        existing_student = Student.query.filter_by(roll_number=roll_number).first()
+        if existing_student:
+            flash(f"Roll number '{roll_number}' already exists!", "danger")
+            return redirect("/")
+            
         student = Student(name=name, roll_number=roll_number)
         db.session.add(student)
         db.session.commit()
